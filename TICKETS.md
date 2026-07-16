@@ -23,8 +23,8 @@ Status values: TODO / IN-PROGRESS / IN-REVIEW / DONE. `[P]` = parallel-safe with
 - **T1.1 — Instance schema & loader** · DONE · merged 2026-07-16 · branch ticket/T1.1-instance-schema (merge commit ed113ed, feature commit c063491)
   Pydantic models for instance (quay, horizon, time step, cranes, vessels); JSON (de)serialization; validation rules (vessel fits quay, ETA in horizon).
   *AC:* round-trip serialization test; 5+ validation-failure tests.
-- **T1.2 — Meisel–Bierwirth benchmark import** · TODO
-  Locate the published BACAP instance files, write parser → our schema, document provenance/citation in docs/data-sources.md. If originals unreachable, implement the paper's generation procedure and mark instances "regenerated per M&B (2009)".
+- **T1.2 — Meisel–Bierwirth benchmark import** · DONE · merged 2026-07-16 · branch ticket/T1.2-mb-regeneration (merge commit 72263cf, feature commit 4f5d7a8)
+  Path B regeneration per amended spec; originals unreachable. Generation parameters transcribed from Correcher & Alvarez-Valdes EJOR-2019 (primary), corroborated by Bogerd (2019) MSc thesis and Iris et al. (2015); reviewer transcription-fidelity audit: APPROVE. Iris-2017 file parser deferred pending dataset acquisition.
   *AC:* ≥1 instance set parsed; parser tests; provenance documented.
 - **T1.3 [P] — Digitraffic port-call calibration** · TODO
   Client for `meri.digitraffic.fi/api/port-call/v1/port-calls` (timeout, retry, rate-limit friendly); pull recent Vuosaari calls; extract arrival-interval + vessel-size distributions; store fitted parameters (no raw-data commit).

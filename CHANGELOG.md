@@ -9,6 +9,31 @@ Commits follow Conventional Commits.
 ## [Unreleased]
 
 ### Deferred / follow-ups (open, no ticket)
+- `docs/data-sources.md`: add one sentence noting that the 210 h horizon used by the regenerator is Correcher's GenMB-10m choice; the original M&B (2009) set used a hard 168 h horizon per Iris et al. (2015) §5.1 — document the deviation explicitly.
+- `docs/data-sources.md` "Documented deviations": cross-list the deterministic feeder→medium→jumbo class-block ordering; ordering is not specified in any source, so this is an implementation choice that should be named as such.
+- Obtain Iris et al. (2017) "BACAP_Benchmark_n60_n80" dataset files (email C. Iris) → would unlock `parse_mb_file` per amended spec Path A' and allow replacement of regenerated instances with published originals.
+
+---
+
+## [0.5.0] — 2026-07-16
+
+### Added — T1.2 Meisel–Bierwirth benchmark import (branch `ticket/T1.2-mb-regeneration`, merge 72263cf, feat 4f5d7a8)
+Second Phase 1 ticket. Implements M&B benchmark instances via **Path B regeneration** (amended spec §4.2); neither the original M&B (2009) dataset files nor the Iris et al. (2017) dataset were obtainable.
+
+- `src/bacap/instances/meisel_bierwirth.py`: `regenerate_mb(size, seed)` and `regenerate_mb_set(seed)` producing `BacapInstance` objects marked `source="meisel_bierwirth_regenerated"`. Generation parameters transcribed from three independent open sources: Correcher & Alvarez-Valdes EJOR-2019 preprint §7.1 pp.22–23 ("GenMB-10m", **primary**), corroborated by Bogerd (2019) MSc thesis Appendix Table 1 and Iris et al. (2015) §5.1. `parse_mb_file` stub included but deferred (raises `NotImplementedError` with acquisition guidance).
+- `tests/instances/test_mb.py`: 13 tests covering regeneration determinism (byte-identical across processes), set composition, instance validity per T1.1 schema, and size variants.
+- `docs/data-sources.md`: rewritten with full provenance, citations, and documented deviations for all three corroborating sources.
+- `.gitignore`: added `docs/data/` and `Bogerd.pdf` — copyrighted source PDFs kept local, never committed.
+
+### Verified (reviewer, fable — transcription-fidelity audit)
+- Reviewer independently re-extracted every constant from source PDFs and verified symbol-for-symbol against implementation.
+- 41 tests passed (28 schema + 13 MB); determinism confirmed byte-identical across processes.
+- `uv run ruff check .` — clean. `uv run mypy src` (strict) — clean.
+- Verdict: APPROVE, zero blocking findings.
+
+---
+
+## [0.4.0] — 2026-07-16
 - `tests/test_config.py` defaults test does not clear ambient env vars — add `monkeypatch.delenv` when it bites in CI.
 - `.pre-commit-config.yaml` pins ruff/mypy versions while dev deps float — sync versions when they drift.
 - `tests/instances/test_schema.py`: test named `test_congestion_index_zero_span_raises` actually asserts the non-raising path — rename to `test_congestion_index_single_vessel_span_positive` when touching that file.
