@@ -7,7 +7,7 @@ Status values: TODO / IN-PROGRESS / IN-REVIEW / DONE. `[P]` = parallel-safe with
 ## Phase 0 — Scaffolding
 **DoD:** clean clone → `uv run pytest` and `cd web && pnpm test` pass in CI; agents/checklist in place.
 
-- **T0.1 — Python scaffold** · TODO
+- **T0.1 — Python scaffold** · DONE · merged 2026-07-16 · branch ticket/T0.1-python-scaffold (merge commit c51f908, feature commit 68bf5f1)
   uv project, `src/bacap/` package, pytest/ruff/mypy configured, pre-commit hooks, `.env.example` (`DWAVE_API_TOKEN=`), config module.
   *AC:* `uv run pytest` green on a placeholder test; lint/type clean; `.env` gitignored.
 - **T0.2 [P] — Next.js scaffold** · TODO
