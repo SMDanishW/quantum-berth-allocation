@@ -14,6 +14,10 @@ htmlcov/
 # Secrets
 .env
 
+# Copyrighted source papers / benchmark tooling (must not be committed)
+docs/data/
+Bogerd.pdf
+
 # OS
 .DS_Store
 Thumbs.db
