@@ -163,7 +163,9 @@ catastrophic join failure (wrong endpoint → ~100 % miss) but tolerates the
 structural ~30 %. The length distribution is therefore fitted on the ~70 % of
 arrivals that carry AIS dimensions — the larger, AIS-tracked cargo ships, which is
 exactly the population a container-terminal calibration wants; the dropped ~30 %
-are small untracked craft we would exclude anyway (length filter is 60–300 m).
+are **plausibly but unverifiably** small untracked craft outside our target
+population (length filter is 60–300 m). This exclusion is unmeasured — see the
+generator-homogeneity caveat below for why it matters.
 
 ### `processing_volume` modeling assumption
 
@@ -185,6 +187,37 @@ field-standard assumption (spec risk table).
 - Inter-arrival: exponential, `rate_per_hour = 0.227` (mean ≈ 4.4 h between arrivals).
 - Vessel length: lognormal, `mu = 5.246`, `sigma = 0.103` (median ≈ 190 m), clipped 60–300 m.
 - Service time (60-min steps): lognormal, `mu = 2.571`, `sigma = 0.831` (median ≈ 13 h).
+
+### Generator limitation — homogeneous vessel fleet under VUOSAARI defaults
+
+The fitted length distribution is very tight (`sigma = 0.103`, median ≈ 190 m).
+Feeding it to the T1.4 generator produces a **homogeneous fleet**: over 50 seeds
+× 10 vessels the drawn lengths span **140–265 m with 0 % below 120 m**, so the
+generator's `<120 m → (1,2)` feeder crane-bucket is **unreachable** and every
+vessel lands in the medium/jumbo buckets with `cranes_max ∈ {3, 4}`. This is far
+more uniform than M&B's 60/30/10 Feeder/Medium/Jumbo mix.
+
+Whether this is *calibration truth* (Vuosaari genuinely serving ~190 m vessels)
+or *selection bias* cannot be decided from the current data: the ~30 % AIS-join
+drop (above) is a plausible source of bias — visiting feeders that leave Finnish
+waters are exactly the kind of vessel absent from a live AIS snapshot, and
+dropping them would shift the fitted median upward. The two explanations are
+**indistinguishable without vessel-resolved ground truth we do not have**.
+
+Consequence for experiments: runs that need **crane-assignment diversity** (a
+spread across feeder/medium/jumbo classes) must pass a custom `calibration`
+argument to `generate_instance` — the mechanism already exists (an
+`ArrivalCalibration` with a wider length `sigma` or lower `mu`). The default is
+left as the honest Vuosaari fit rather than a hand-tuned spread.
+
+### Congestion knob ρ is a target, not realized utilization (ruling C)
+
+The `congestion` argument ρ is a generator **target** that sets the arrival rate;
+it is not the achieved utilization. Realized congestion is *measured* per instance
+by `congestion_index` (spec D5). Observed means over 20 seeds are **≈ 0.30 / 0.43
+/ 0.53 for ρ = 0.3 / 0.5 / 0.7** — monotonic but sublinear, because `T_span`
+stretches with the last vessel's arrival. The thesis reports the **measured
+`congestion_index`** and never claims ρ is the realized utilization.
 
 Raw responses are never committed. Deterministic unit tests use hand-built,
 truncated fixtures (`tests/fixtures/digitraffic/port_calls_fit.json`,
