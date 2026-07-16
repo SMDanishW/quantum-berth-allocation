@@ -45,3 +45,10 @@ Frontend derives ALL animation keyframes from this — no extra state.
 
 ## Agents & workflow
 Four subagents in `.claude/agents/` (architect / implementer / reviewer / scribe). Phase loop, gates, and escalation rules: see WORKFLOW.md. Tickets and phase status: TICKETS.md (single source of truth). QA gate: qa-security-checklist.md — reviewer runs it on every ticket; §5 (quantum) and §6 (frontend) are the hot sections here.
+
+## ⛔ Fable 5 checkpoint (token budget — MANDATORY)
+`architect` and `reviewer` run on claude-fable-5 (expensive). NEVER invoke a Fable-5 subagent silently. Before any such call:
+1. STOP and print exactly:
+   > ⛔ **FABLE 5 CHECKPOINT** — `<architect|reviewer>` needed for <ticket/step>: <one-line reason>. Reply: **fable** (proceed) / **opus** (downgrade this call) / **defer**.
+2. Wait for the user's reply. **opus** → invoke the same subagent with model overridden to claude-opus-4-8. **defer** → note it in TICKETS.md and continue other work.
+3. Default recommendation per call: routine reviews (scaffolding, docs, frontend polish, config) → suggest **opus**; QUBO/math formulations, statistical protocol, artifact-schema contracts, secret/API-key-handling code → suggest **fable**.
