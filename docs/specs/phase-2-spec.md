@@ -220,6 +220,8 @@ $$n_x = \sum_{v}\; |B_v| \sum_{c \in C_v} \max\big(0,\; L_v - d_v(c) - e_v + 1\b
 
 **Estimates below use the "annealing preset"** — the discretization mandated for all quantum-track experiments: `time_step_min=120`, `berth_grid_m=50`, quay 750 m (S=15), Q=5 (K=3), congestion 0.5, representative vessel `λ=3` (|B|=13), `|C_v|=2`, `d̄≈6.5` steps, generator horizon `T ≈ 2N+22`, `latest_departure=None`. Numbers are ±30% envelope estimates — **recompute exactly from `penalty_report` in T2.2 and update this table (scribe)**.
 
+**AMENDED 2026-07-17 (spike B):** the phase-1-spec §4.4 amendment gives synthetic instances a hard LFT: `L_v = eta + ceil(1.5·d_v^min)`, so `latest_departure=None` above is superseded. The per-`(v,b,c)` start window shrinks from `T − d_v(c) − e_v + 1` to `ceil(1.5·d_v^min) − d_v(c) + 1` ≈ 2–5 starts (e.g. `d_min=6`: window `9 − d(c) + 1`, i.e. 4 starts at `c=r⁺`, ~1–2 at `c=r⁻`), making the table entries **stale worst-case upper bounds** — actual `n_x` drops roughly an order of magnitude (≈ `N·|B|·(3–6)` ≈ 40–80·N, e.g. N=8 → n_x ≈ 500 vs ≈ 5 100 above). `n_y` is unchanged. Solver-viability conclusions only improve (direct QPU may become reachable at N=3–5 without the micro preset's quay shrink — verify in T2.2). The T2.2 recompute-and-update mandate stands and now matters more. The `n_x` formula, `g_v`/`L_v` symbol table, P4 structural pruning, F4, and the tardiness definition (§2) are already written against `target_departure`/`latest_departure` generically and need **no change**.
+
 | N vessels | T (steps) | n_x | n_y | **n total** | est. quadratic terms | Solver viability |
 |---|---|---|---|---|---|---|
 | 5  | 32 | ≈ 2 800  | 96  | **≈ 2.9 k**  | ≈ 3×10⁵ | SA ✓ · LeapHybrid ✓ · direct QPU ✗ · QAOA ✗ |
