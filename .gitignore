@@ -26,3 +26,4 @@ out/
 coverage/
 test-results/
 playwright-report/
+".claude/agent-memory/" 
