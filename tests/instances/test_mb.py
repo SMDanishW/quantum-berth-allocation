@@ -80,13 +80,14 @@ def test_values_within_ranges() -> None:
             assert 0 <= v.eta <= 168
 
 
-# (4) target_departure formula spot-check against a fresh identical rng draw
+# (4) EFT (target_departure) and LFT (latest_departure) formulas spot-checked
 @pytest.mark.parametrize("spec", [_FEEDER, _MEDIUM, _JUMBO])
 def test_due_date_formula(spec: _ClassSpec) -> None:
     inst = regenerate_mb(20, 5)
     v = next(x for x in inst.vessels if _sig(x) == (spec.cranes_min, spec.cranes_max))
     min_duration = math.ceil(v.processing_volume / v.cranes_max)
-    assert v.target_departure == v.eta + math.ceil(1.5 * min_duration)
+    assert v.target_departure == v.eta + min_duration  # EFT (example Table 1, p.6)
+    assert v.latest_departure == v.eta + math.ceil(1.5 * min_duration)  # LFT (§7.2)
 
 
 def test_due_date_known_draw() -> None:
@@ -95,8 +96,18 @@ def test_due_date_known_draw() -> None:
     _ = int(rng.integers(_FEEDER.len_lo, _FEEDER.len_hi + 1))  # length
     m_i = int(rng.integers(_FEEDER.mi_lo, _FEEDER.mi_hi + 1))
     eta = int(rng.integers(0, 169))
-    expected = eta + math.ceil(1.5 * math.ceil(m_i / _FEEDER.cranes_max))
-    assert regenerate_mb(20, 5).vessels[0].target_departure == expected
+    min_duration = math.ceil(m_i / _FEEDER.cranes_max)
+    v0 = regenerate_mb(20, 5).vessels[0]
+    assert v0.target_departure == eta + min_duration
+    assert v0.latest_departure == eta + math.ceil(1.5 * min_duration)
+
+
+# (4b) V6 safety: LFT must never exceed the planning horizon across the full set
+def test_latest_departure_within_horizon() -> None:
+    for inst in regenerate_mb_set(99):
+        for v in inst.vessels:
+            assert v.latest_departure is not None
+            assert v.latest_departure <= inst.time_horizon
 
 
 # (5) source literal + instance_id / vessel id format

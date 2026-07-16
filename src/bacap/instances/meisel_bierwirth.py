@@ -3,8 +3,25 @@
 The original M&B instance files are unreachable and the Iris (2017) dataset
 could not be obtained either, so per the architect's fallback ordering the
 benchmark is *regenerated* from M&B's published generation scheme rather than
-parsed from files. Parameters below are transcribed verbatim from open sources
-(see ``docs/data-sources.md`` for full provenance and documented deviations).
+parsed from files. Parameters are grounded in the primary source, Meisel &
+Bierwirth (2009), Transportation Research Part E 45(1) — §7.2 (pp.10-11), the
+Table 3 class table, and the example vessel Table 1 (p.6). Correcher (2019) and
+Bogerd (2019) are corroborating only (see ``docs/data-sources.md`` for full
+provenance and documented deviations).
+
+Due-date semantics (primary-source correction, amends the pre-amendment
+regeneration — regenerated instances therefore DIFFER from earlier ones):
+
+- ``target_departure`` (EFT, earliest finishing time) = ``eta + min_duration``.
+  M&B state no EFT prose rule; the example Table 1 (p.6) fixes it arithmetically
+  (vessel 3: m=5, r_max=3 -> d_min=ceil(5/3)=2; ETA=4, EFT=6=4+2).
+- ``latest_departure`` (LFT, the hard deadline) = ``eta + ceil(1.5 x min_duration)``.
+  §7.2 verbatim: "The latest finishing time LFT of a vessel is derived by adding
+  1.5 times a vessel's minimum handling time to ETA_i." ``ceil`` keeps it on the
+  integer grid (documented deviation). The 1.5 rule is the LFT, NOT the EFT/due
+  date — the earlier wiring followed Correcher's phrasing which conflates the two.
+
+with ``min_duration = ceil(m_i / cranes_max)``.
 
 Determinism contract: one ``numpy.random.default_rng(seed)`` per instance, with
 a fixed draw order. Classes are assigned deterministically (exact 60/30/10
@@ -32,9 +49,10 @@ TIME_STEP_MIN = 60
 TIME_HORIZON = 210
 ETA_HI = 168  # eta ~ U[0, 168] integer inclusive; 210-168 tail avoids infeasibility
 
-# 1.5 x min handling time, M&B's due-date criterion quoted verbatim in the
-# preprint ("s_i = a_i + 1.5 x min handling time"); ceil keeps it on the grid.
-DUE_DATE_FACTOR = 1.5
+# 1.5 x min handling time = M&B's latest finishing time (LFT), §7.2 verbatim:
+# "adding 1.5 times a vessel's minimum handling time to ETA_i"; ceil keeps it on
+# the grid. This is the HARD deadline (latest_departure), not the EFT/due date.
+LFT_FACTOR = 1.5
 
 
 class _ClassSpec(NamedTuple):
@@ -83,7 +101,8 @@ def regenerate_mb(n_vessels: Literal[20, 30, 40], seed: int) -> BacapInstance:
         m_i = int(rng.integers(spec.mi_lo, spec.mi_hi + 1))
         eta = int(rng.integers(0, ETA_HI + 1))
         min_duration = math.ceil(m_i / spec.cranes_max)
-        target_departure = eta + math.ceil(DUE_DATE_FACTOR * min_duration)
+        target_departure = eta + min_duration  # EFT (example Table 1, p.6)
+        latest_departure = eta + math.ceil(LFT_FACTOR * min_duration)  # LFT (§7.2)
         vessels.append(
             Vessel(
                 id=f"v{i:02d}",
@@ -95,7 +114,7 @@ def regenerate_mb(n_vessels: Literal[20, 30, 40], seed: int) -> BacapInstance:
                 cranes_min=spec.cranes_min,
                 cranes_max=spec.cranes_max,
                 target_departure=target_departure,
-                latest_departure=None,  # documented deviation: M&B LFT unavailable
+                latest_departure=latest_departure,
             )
         )
     return BacapInstance(
