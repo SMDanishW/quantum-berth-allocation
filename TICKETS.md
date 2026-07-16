@@ -27,9 +27,10 @@ Status values: TODO / IN-PROGRESS / IN-REVIEW / DONE. `[P]` = parallel-safe with
   Path B regeneration per amended spec; originals unreachable. Generation parameters transcribed from Correcher & Alvarez-Valdes EJOR-2019 (primary), corroborated by Bogerd (2019) MSc thesis and Iris et al. (2015); reviewer transcription-fidelity audit: APPROVE. Iris-2017 file parser deferred pending dataset acquisition.
   *AC:* ≥1 instance set parsed; parser tests; provenance documented.
   AMENDED 2026-07-16: EFT/LFT formula corrected against primary source M&B (2009) (commits 9a67b8b feat, 7d452c7 merge). `target_departure` was wired to `eta + ceil(1.5×min_duration)` (following Correcher's conflated phrasing); corrected to `eta + min_duration` (EFT, inferred from Table 1 worked example). `latest_departure` was `None`; now `eta + ceil(1.5×min_duration)` per M&B §7.2 verbatim LFT rule. Reviewer (opus) re-extracted PDF text, verified arithmetic against two table rows, caught worst-case-LFT bound error in ticket brief (188 not 185 for Medium class). 42 tests green; ruff/mypy clean. Primary source demoted Correcher to corroborating; "latest_departure unavailable" deviation removed; EFT-inference deviation added.
-- **T1.3 [P] — Digitraffic port-call calibration** · TODO
+- **T1.3 [P] — Digitraffic port-call calibration** · DONE · merged 2026-07-17 · branch ticket/T1.3-digitraffic-calibration (merge commit 7a6a6b8, feature commit d56fe07)
   Client for `meri.digitraffic.fi/api/port-call/v1/port-calls` (timeout, retry, rate-limit friendly); pull recent Vuosaari calls; extract arrival-interval + vessel-size distributions; store fitted parameters (no raw-data commit).
   *AC:* fitted distributions serialized + plotted; API client tested against recorded fixtures; CC BY 4.0 attribution added.
+  DEVIATION (approved): join-drop-raise threshold relaxed from 20% to 50% — ~30% of VUOS MMSIs are structurally absent from the live AIS snapshot regardless of window width. Fitted length distribution describes only the AIS-tracked ~70% subpopulation; caveat recorded in docs/data-sources.md.
 - **T1.4 — Instance generator** · TODO
   Generator sampling from T1.3 distributions, configurable (n vessels, congestion level, seed).
   *AC:* seeded determinism test; generated instances pass T1.1 validation; congestion knob measurably shifts overlap pressure.
