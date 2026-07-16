@@ -9,9 +9,26 @@ Commits follow Conventional Commits.
 ## [Unreleased]
 
 ### Deferred / follow-ups (open, no ticket)
-- `docs/data-sources.md`: add one sentence noting that the 210 h horizon used by the regenerator is Correcher's GenMB-10m choice; the original M&B (2009) set used a hard 168 h horizon per Iris et al. (2015) §5.1 — document the deviation explicitly.
-- `docs/data-sources.md` "Documented deviations": cross-list the deterministic feeder→medium→jumbo class-block ordering; ordering is not specified in any source, so this is an implementation choice that should be named as such.
 - Obtain Iris et al. (2017) "BACAP_Benchmark_n60_n80" dataset files (email C. Iris) → would unlock `parse_mb_file` per amended spec Path A' and allow replacement of regenerated instances with published originals.
+
+---
+
+## [0.5.1] — 2026-07-16
+
+### Fixed — T1.2 amendment: EFT/LFT formula correction (commits 9a67b8b feat, 7d452c7 merge)
+
+Primary source M&B (2009) was obtained after T1.2 merged, revealing a formula mis-wiring introduced by following Correcher's (2019) conflated phrasing of the due-date rule.
+
+**What was wrong:** `target_departure` was set to `eta + ceil(1.5 × min_duration)` and `latest_departure` was `None`. Correcher describes the due date as "desired departure = a_i + 1.5 × min handling time", which conflates M&B's LFT (hard deadline) with the soft due date.
+
+**What M&B (2009) actually says:** §7.2 verbatim — "The latest finishing time LFT of a vessel is derived by adding 1.5 times a vessel's minimum handling time to ETA_i." The EFT (earliest finishing time / soft due date) is not stated in §7.2 prose; it is inferred arithmetically from the worked example Table 1 (p.6): vessel 3 has m=5, r_max=3, so min_duration=ceil(5/3)=2, ETA=4, EFT=6=4+2, i.e. `eta + min_duration`.
+
+**Changes:**
+- `src/bacap/instances/meisel_bierwirth.py`: `target_departure = eta + min_duration` (EFT); `latest_departure = eta + ceil(1.5 × min_duration)` (LFT, verbatim rule).
+- `docs/data-sources.md`: primary source updated to M&B (2009) local PDF; Correcher demoted to corroborating with an explanatory note about the conflation; "latest_departure unavailable" deviation removed; new deviation "EFT rule not stated in prose" added; amendment note appended to deviation list.
+- **Provenance impact:** all previously regenerated instances have incorrect `target_departure` / `latest_departure` values. Re-run `regenerate_mb_set(seed)` to obtain corrected instances.
+
+**Reviewer verification (opus):** independently re-extracted §7.2 text from the PDF, confirmed verbatim LFT quote, checked EFT inference against two table rows (vessels 1 and 3), caught a worst-case-LFT bound error in the ticket brief (Medium class: 188, not 185). Verdict: APPROVE, no blocking findings. 42 tests green; `uv run ruff check .` clean; `uv run mypy src` (strict) clean.
 
 ---
 
