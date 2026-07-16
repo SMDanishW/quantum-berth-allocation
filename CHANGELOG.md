@@ -12,6 +12,33 @@ Commits follow Conventional Commits.
 - `tests/test_config.py` defaults test does not clear ambient env vars — add `monkeypatch.delenv` when it bites in CI (natural home: T0.3).
 - `.pre-commit-config.yaml` pins ruff/mypy versions while dev deps float — sync versions when they drift during T0.3 or later.
 
+### Deferred / follow-ups (non-blocking, carried from T0.2 review)
+- `web/src/app/layout.tsx` metadata title still reads "Create Next App" — set project title to the actual project name.
+- `web/public/` contains leftover create-next-app default SVGs (file/globe/next/vercel/window.svg) — unused, prune when convenient.
+- `web/README.md` is unmodified create-next-app boilerplate — replace with project-specific content.
+- A `.gitattributes` for LF/CRLF normalization is worth adding in T0.3; Windows `autocrlf` produces commit warnings on this repo.
+- A git tag named `main` collides with the branch name (ambiguous refname warning on `git checkout main`) — repo-hygiene item, resolve in T0.3.
+
+---
+
+## [0.2.0] — 2026-07-16
+
+### Added — T0.2 Next.js scaffold (branch `ticket/T0.2-nextjs-scaffold`, merge 782a413, feat 84947da)
+- `web/`: Next.js 15.5.20 App Router project in TypeScript. Note: `create-next-app` initially pulled Next 16; pinned back to 15 per CLAUDE.md stack constraint.
+- `web/package.json`: pnpm workspace; deps include `@react-three/fiber` 9, `@react-three/drei` 10, `zustand` 5, `zod` 4, Tailwind v4.
+- `web/src/app/page.tsx` + `layout.tsx`: placeholder route; renders under `pnpm dev`.
+- `web/vitest.config.ts` + example test: vitest wired; 1 test passing.
+- `web/playwright.config.ts`: Playwright e2e harness wired (no tests yet).
+- `web/public/artifacts/.gitkeep`: artifacts directory created empty, ready to receive solution JSON from solvers.
+- `web/tailwind.config.ts`: Tailwind v4 config.
+
+### Verified
+- `pnpm install --frozen-lockfile` — clean.
+- `pnpm lint` — clean.
+- `pnpm typecheck` (`tsc --noEmit`) — clean.
+- `pnpm test` (vitest) — 1 passed.
+- `pnpm build` — prerenders placeholder route.
+
 ---
 
 ## [0.1.0] — 2026-07-16
