@@ -1,0 +1,285 @@
+{
+ "dataUpdatedTime": "2026-07-16T00:00:00Z",
+ "portCalls": [
+  {
+   "portCallId": 5000,
+   "mmsi": 100001,
+   "imoLloyds": 9000000,
+   "vesselName": "V00",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-01T00:00:00Z",
+     "atd": "2026-01-02T00:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5001,
+   "mmsi": 100002,
+   "imoLloyds": 9000001,
+   "vesselName": "V01",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-01T12:00:00Z",
+     "atd": "2026-01-03T00:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5002,
+   "mmsi": 100003,
+   "imoLloyds": 9000002,
+   "vesselName": "V02",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-01T18:00:00Z",
+     "atd": "2026-01-02T04:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5003,
+   "mmsi": 100004,
+   "imoLloyds": 9000003,
+   "vesselName": "V03",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-02T12:00:00Z",
+     "atd": "2026-01-04T12:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5004,
+   "mmsi": 100005,
+   "imoLloyds": 9000004,
+   "vesselName": "V04",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-03T12:00:00Z",
+     "atd": "2026-01-03T18:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5005,
+   "mmsi": 100006,
+   "imoLloyds": 9000005,
+   "vesselName": "V05",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-03T20:00:00Z",
+     "atd": "2026-01-06T20:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5006,
+   "mmsi": 100007,
+   "imoLloyds": 9000006,
+   "vesselName": "V06",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-05T02:00:00Z",
+     "atd": "2026-01-05T10:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5007,
+   "mmsi": 100008,
+   "imoLloyds": 9000007,
+   "vesselName": "V07",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-05T12:00:00Z",
+     "atd": "2026-01-10T12:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5008,
+   "mmsi": 100009,
+   "imoLloyds": 9000008,
+   "vesselName": "V08",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-06T03:00:00Z",
+     "atd": "2026-01-06T17:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5009,
+   "mmsi": 100010,
+   "imoLloyds": 9000009,
+   "vesselName": "V09",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-06T23:00:00Z",
+     "atd": "2026-01-08T05:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5010,
+   "mmsi": 100011,
+   "imoLloyds": 9000010,
+   "vesselName": "V10",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-07T04:00:00Z",
+     "atd": "2026-01-08T00:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5011,
+   "mmsi": 100012,
+   "imoLloyds": 9000011,
+   "vesselName": "V11",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-08T20:00:00Z",
+     "atd": "2026-01-10T22:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5012,
+   "mmsi": 100013,
+   "imoLloyds": 9000012,
+   "vesselName": "V12",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-09T05:00:00Z",
+     "atd": "2026-01-09T21:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5013,
+   "mmsi": 100014,
+   "imoLloyds": 9000013,
+   "vesselName": "V13",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-09T19:00:00Z",
+     "atd": "2026-01-11T11:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5014,
+   "mmsi": 100015,
+   "imoLloyds": 9000014,
+   "vesselName": "V14",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-10T17:00:00Z",
+     "atd": "2026-01-11T05:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5015,
+   "mmsi": 100016,
+   "imoLloyds": 9000015,
+   "vesselName": "V15",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-11T00:00:00Z",
+     "atd": "2026-01-13T12:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5016,
+   "mmsi": 100017,
+   "imoLloyds": 9000016,
+   "vesselName": "V16",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-11T16:00:00Z",
+     "atd": "2026-01-12T10:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5017,
+   "mmsi": 100018,
+   "imoLloyds": 9000017,
+   "vesselName": "V17",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-12T03:00:00Z",
+     "atd": "2026-01-15T21:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5018,
+   "mmsi": 100019,
+   "imoLloyds": 9000018,
+   "vesselName": "V18",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-13T07:00:00Z",
+     "atd": "2026-01-14T05:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  },
+  {
+   "portCallId": 5019,
+   "mmsi": 100020,
+   "imoLloyds": 9000019,
+   "vesselName": "V19",
+   "portAreaDetails": [
+    {
+     "ata": "2026-01-13T20:00:00Z",
+     "atd": "2026-01-15T00:00:00Z",
+     "portAreaCode": "VUOS",
+     "berthCode": "VB1"
+    }
+   ]
+  }
+ ]
+}

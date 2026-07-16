@@ -1,0 +1,162 @@
+[
+ {
+  "mmsi": 100001,
+  "referencePointA": 65,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V00"
+ },
+ {
+  "mmsi": 100002,
+  "referencePointA": 80,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V01"
+ },
+ {
+  "mmsi": 100003,
+  "referencePointA": 100,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V02"
+ },
+ {
+  "mmsi": 100004,
+  "referencePointA": 120,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V03"
+ },
+ {
+  "mmsi": 100005,
+  "referencePointA": 140,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V04"
+ },
+ {
+  "mmsi": 100006,
+  "referencePointA": 155,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V05"
+ },
+ {
+  "mmsi": 100007,
+  "referencePointA": 170,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V06"
+ },
+ {
+  "mmsi": 100008,
+  "referencePointA": 185,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V07"
+ },
+ {
+  "mmsi": 100009,
+  "referencePointA": 200,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V08"
+ },
+ {
+  "mmsi": 100010,
+  "referencePointA": 215,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V09"
+ },
+ {
+  "mmsi": 100011,
+  "referencePointA": 230,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V10"
+ },
+ {
+  "mmsi": 100012,
+  "referencePointA": 245,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V11"
+ },
+ {
+  "mmsi": 100013,
+  "referencePointA": 260,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V12"
+ },
+ {
+  "mmsi": 100014,
+  "referencePointA": 275,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V13"
+ },
+ {
+  "mmsi": 100015,
+  "referencePointA": 110,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V14"
+ },
+ {
+  "mmsi": 100016,
+  "referencePointA": 130,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V15"
+ },
+ {
+  "mmsi": 100017,
+  "referencePointA": 150,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V16"
+ },
+ {
+  "mmsi": 100018,
+  "referencePointA": 190,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V17"
+ },
+ {
+  "mmsi": 100019,
+  "referencePointA": 90,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V18"
+ },
+ {
+  "mmsi": 100020,
+  "referencePointA": 70,
+  "referencePointB": 10,
+  "referencePointC": 5,
+  "referencePointD": 5,
+  "name": "V19"
+ }
+]

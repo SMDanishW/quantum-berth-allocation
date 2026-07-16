@@ -106,7 +106,89 @@ amendment shifts `target_departure` (was `eta + ceil(1.5·min_duration)`, now
 
 ## Digitraffic port-call API (T1.3)
 
-Placeholder — populated in T1.3. Arrival-pattern calibration will derive from
-Fintraffic / Digitraffic port-call data
-(https://www.digitraffic.fi/en/marine-traffic/), licensed CC BY 4.0. Raw data
-not redistributed; only fitted distribution parameters are stored.
+**Attribution (verbatim, per spec §4.3):**
+
+> Arrival-pattern calibration derived from Fintraffic / Digitraffic port-call
+> data (https://www.digitraffic.fi/en/marine-traffic/), licensed CC BY 4.0. Raw
+> data not redistributed; only fitted distribution parameters are stored.
+
+### Step-0 verification (against the live OpenAPI, 2026-07-16)
+
+Confirmed against `https://meri.digitraffic.fi/swagger/openapi.json` (the swagger
+UI is a JS app; the OpenAPI JSON is the machine-readable source). Cross-checked
+the endpoint shapes against the user's own `SMDanishW/maritime-intelligence`
+repo, which uses the same `meri.digitraffic.fi` port-call + AIS vessel endpoints.
+
+**Port calls — `GET /api/port-call/v1/port-calls`**
+- Query params (verified): `date`, `from`, `to`, `etaFrom/etaTo`, `ataFrom/ataTo`,
+  `etdFrom/etdTo`, `atdFrom/atdTo`, `locode`, `vesselName`, `mmsi`, `imo`,
+  `nationality`, `vesselTypeCode`. We use `locode=FIHEL` + `ataFrom` + `ataTo`
+  (ISO-8601 with `Z`).
+- Response: `{ "dataUpdatedTime", "portCalls": [ { portCallId, mmsi, imoLloyds,
+  vesselName, vesselTypeCode, portAreaDetails: [ { ata, atd, eta, portAreaCode,
+  berthCode, berthName, portAreaName, … } ] } ] }`. ATA/ATD live inside
+  `portAreaDetails[]`, not on the call.
+- **No server-side pagination cursor** — a date range returns all matching calls
+  in one payload. The client (`fetch_port_calls`) windows the requested range into
+  ≤30-day sub-requests (rate-limit friendly, bounded), concatenates, dedupes by
+  `portCallId`, hard cap 10 000. Server always gzips; `httpx` decodes transparently
+  (raw `urllib` needs manual `gzip.decompress`).
+
+**Vuosaari port-area code = `VUOS`** (name "Vuosaaren satama"), obtained from
+`GET /api/port-call/v1/ports/FIHEL` → `portAreas.features[].portAreaCode`. (The
+`portAreaCode` "VTL" is "Vuosaari, telakka" = the shipyard, deliberately excluded.)
+The spec's expected `"VUOS"` is confirmed exactly.
+
+**AIS vessel metadata — `GET /api/ais/v1/vessels`**
+- Returns a flat array of `{ mmsi, referencePointA, referencePointB,
+  referencePointC, referencePointD, imo, name, shipType, draught, … }`.
+- **Vessel length = `referencePointA + referencePointB`** (bow + stern distances
+  from the AIS reference point), per spec.
+- Etiquette header `Digitraffic-User: bacap-thesis/1.0`, 30 s timeout, D8 retry
+  (3 retries after the initial attempt, backoff 1/2/4 s; retry only on transport
+  timeout / 5xx, 4xx fails loud immediately).
+
+### AIS-snapshot join limitation (verified deviation from spec §4.3)
+
+`/api/ais/v1/vessels` is a **live snapshot** of currently/recently tracked
+vessels (~1100 near Finland), whereas port calls span months. Measured on
+2026-07-16, a **structural ~30 % of Vuosaari port-call MMSIs are absent from the
+AIS snapshot**, and this is stable across windows (30 d: 29 %, 90 d: 32 %,
+180 d: 33 %) — i.e. not temporal decay but genuinely untracked craft (tugs, small
+craft, `mmsi=0`, vessels outside AIS range). The spec's 20 % join-drop **raise**
+threshold assumed near-complete coverage and makes calibration impossible against
+the real data. Per the ticket's "proceed with verified reality" authority, the
+guard is relaxed to **50 %** (`JOIN_DROP_RAISE_FRAC`) — it still fails loud on
+catastrophic join failure (wrong endpoint → ~100 % miss) but tolerates the
+structural ~30 %. The length distribution is therefore fitted on the ~70 % of
+arrivals that carry AIS dimensions — the larger, AIS-tracked cargo ships, which is
+exactly the population a container-terminal calibration wants; the dropped ~30 %
+are small untracked craft we would exclude anyway (length filter is 60–300 m).
+
+### `processing_volume` modeling assumption
+
+Digitraffic carries no cargo/crane volumes, so `processing_volume` is not
+calibrated directly. The **service time** `(ATD − ATA)` in hours is fitted
+(lognormal); the generator (T1.4) turns a service-time draw into
+`processing_volume` via a representative crane count (spec §4.4 step 3). Documented
+field-standard assumption (spec risk table).
+
+### Achieved calibration (real run, 2026-07-16)
+
+`scripts/calibrate_vuosaari.py` → `experiments/calibration/vuosaari.json`
+(committed — fitted parameters only, no raw data) and
+`docs/figures/vuosaari-calibration.png` (histogram + fitted-density overlay).
+
+- Window: **2026-01-18 → 2026-07-16** (most recent 6 months; sufficient, no need
+  to widen to 12).
+- **n_port_calls = 982** VUOS calls with a valid ATA (after dedupe).
+- Inter-arrival: exponential, `rate_per_hour = 0.227` (mean ≈ 4.4 h between arrivals).
+- Vessel length: lognormal, `mu = 5.246`, `sigma = 0.103` (median ≈ 190 m), clipped 60–300 m.
+- Service time (60-min steps): lognormal, `mu = 2.571`, `sigma = 0.831` (median ≈ 13 h).
+
+Raw responses are never committed. Deterministic unit tests use hand-built,
+truncated fixtures (`tests/fixtures/digitraffic/port_calls_fit.json`,
+`vessels_fit.json`, ≤50 records) with independently hand-computed MLE parameters,
+served via `httpx.MockTransport` — no live HTTP in the test suite.
+`scripts/record_digitraffic_fixtures.py` is a one-off recorder (not run in CI, its
+output not committed).
