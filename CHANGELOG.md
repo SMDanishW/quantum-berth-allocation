@@ -8,16 +8,45 @@ Commits follow Conventional Commits.
 
 ## [Unreleased]
 
-### Deferred / follow-ups (non-blocking, carried from T0.1 review)
-- `tests/test_config.py` defaults test does not clear ambient env vars — add `monkeypatch.delenv` when it bites in CI (natural home: T0.3).
-- `.pre-commit-config.yaml` pins ruff/mypy versions while dev deps float — sync versions when they drift during T0.3 or later.
+### Deferred / follow-ups (open, carried forward to Phase 1)
+- `tests/test_config.py` defaults test does not clear ambient env vars — add `monkeypatch.delenv` when it bites in CI.
+- `.pre-commit-config.yaml` pins ruff/mypy versions while dev deps float — sync versions when they drift.
 
-### Deferred / follow-ups (non-blocking, carried from T0.2 review)
-- `web/src/app/layout.tsx` metadata title still reads "Create Next App" — set project title to the actual project name.
-- `web/public/` contains leftover create-next-app default SVGs (file/globe/next/vercel/window.svg) — unused, prune when convenient.
-- `web/README.md` is unmodified create-next-app boilerplate — replace with project-specific content.
-- A `.gitattributes` for LF/CRLF normalization is worth adding in T0.3; Windows `autocrlf` produces commit warnings on this repo.
-- A git tag named `main` collides with the branch name (ambiguous refname warning on `git checkout main`) — repo-hygiene item, resolve in T0.3.
+---
+
+## Phase 0 — Scaffolding (closed 2026-07-16)
+
+All three Phase 0 tickets (T0.1, T0.2, T0.3) are DONE. The DoD ("clean clone → `uv run pytest` and `cd web && pnpm test` pass in CI") is code-complete and locally green (reviewer confirmed: uv run pytest 4 passed, ruff clean, mypy clean, pnpm lint/typecheck/test clean). Full CI-green verification is pending the repo owner's push to origin/main — no push has been made yet; the owner is holding for manual review before any remote push.
+
+Phase 1 (Instance model, generator & real-data calibration) is next. Spec approved at `docs/specs/phase-1-spec.md`. First open ticket: T1.1 (Instance schema & loader).
+
+---
+
+## [0.3.0] — 2026-07-16
+
+### Added — T0.3 CI + repo hygiene (branch `ticket/T0.3-ci-hygiene`, merge 5527814, feats 317b1af + aeee16e)
+- `.github/workflows/ci.yml`: two jobs — Python (ruff check, mypy, pytest via `astral-sh/setup-uv`); web (pnpm lint, typecheck, vitest via `pnpm/action-setup`).
+- `LICENSE`: MIT.
+- `docs/data-sources.md`: stub for data provenance tracking.
+- `.gitattributes`: LF normalization baseline; resolves Windows autocrlf commit warnings.
+
+### Changed — hygiene items deferred from T0.1/T0.2 reviews
+- `web/src/app/layout.tsx`: metadata title set to actual project name (was "Create Next App").
+- `web/README.md`: replaced create-next-app boilerplate with project-specific description.
+- `web/package.json`: added `packageManager: "pnpm@10.30.3"` — required by `pnpm/action-setup` in CI (action could not resolve pnpm version without explicit declaration; caught in first review round).
+
+### Removed
+- `web/public/`: pruned 5 unused create-next-app default SVGs (file, globe, next, vercel, window).
+
+### Verified (reviewer, post-fix round)
+- `uv run pytest` — 4 passed.
+- `uv run ruff check .` — clean.
+- `uv run mypy src` (strict) — clean.
+- `pnpm lint` — clean.
+- `pnpm typecheck` — clean.
+- `pnpm test` (vitest) — clean.
+- CI YAML validated.
+- QA checklist §1/§2/§3/§7 — all PASS. Verdict: APPROVE.
 
 ---
 

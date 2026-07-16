@@ -13,8 +13,8 @@ Status values: TODO / IN-PROGRESS / IN-REVIEW / DONE. `[P]` = parallel-safe with
 - **T0.2 [P] — Next.js scaffold** · DONE · merged 2026-07-16 · branch ticket/T0.2-nextjs-scaffold (merge commit 782a413, feature commit 84947da)
   Next.js 15 TS app in `web/`, Tailwind, r3f+drei+zustand+zod installed, vitest + Playwright wired.
   *AC:* `pnpm dev` renders placeholder; lint/typecheck/test green.
-- **T0.3 [P] — CI + repo hygiene** · TODO
-  GitHub Actions: Python lint+type+test job, web lint+type+test job. LICENSE, README stub, docs/ skeleton.
+- **T0.3 [P] — CI + repo hygiene** · DONE · merged 2026-07-16 · branch ticket/T0.3-ci-hygiene (merge commit 5527814, feature commits 317b1af + aeee16e)
+  GitHub Actions: Python lint+type+test job, web lint+type+test job. LICENSE, README stub, docs/ skeleton. Also folded: layout.tsx metadata title, pruned 5 unused create-next-app SVGs, web/README.md project description, .gitattributes LF normalization. pnpm/action-setup version pin fixed via `packageManager: "pnpm@10.30.3"` in web/package.json after first review round-trip.
   *AC:* CI green on main.
 
 ## Phase 1 — Instance model, generator & real-data calibration
