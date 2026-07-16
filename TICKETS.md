@@ -10,7 +10,7 @@ Status values: TODO / IN-PROGRESS / IN-REVIEW / DONE. `[P]` = parallel-safe with
 - **T0.1 — Python scaffold** · DONE · merged 2026-07-16 · branch ticket/T0.1-python-scaffold (merge commit c51f908, feature commit 68bf5f1)
   uv project, `src/bacap/` package, pytest/ruff/mypy configured, pre-commit hooks, `.env.example` (`DWAVE_API_TOKEN=`), config module.
   *AC:* `uv run pytest` green on a placeholder test; lint/type clean; `.env` gitignored.
-- **T0.2 [P] — Next.js scaffold** · TODO
+- **T0.2 [P] — Next.js scaffold** · DONE · merged 2026-07-16 · branch ticket/T0.2-nextjs-scaffold (merge commit 782a413, feature commit 84947da)
   Next.js 15 TS app in `web/`, Tailwind, r3f+drei+zustand+zod installed, vitest + Playwright wired.
   *AC:* `pnpm dev` renders placeholder; lint/typecheck/test green.
 - **T0.3 [P] — CI + repo hygiene** · TODO
