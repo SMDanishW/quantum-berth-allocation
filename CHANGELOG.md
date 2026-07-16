@@ -17,6 +17,34 @@ Commits follow Conventional Commits.
 
 ---
 
+## [0.7.0] — 2026-07-17
+
+### Added — T1.4 Instance generator (branch `ticket/T1.4-instance-generator`, merge 6370b9c, feats c7259bc + dcb66fe)
+
+Fourth and final Phase 1 ticket. **Phase 1 DoD met.**
+
+- `src/bacap/instances/generator.py`: `generate_instance(n, congestion, seed)` sampling vessel count, inter-arrival times, lengths, and service times from T1.3 Vuosaari calibration constants (`VUOSAARI_DEFAULTS`). Congestion knob `rho` is a generator target, not realized utilization; `congestion_index` is the measured output (observed ~0.30/0.43/0.53 for rho=0.3/0.5/0.7, sublinear relationship).
+- `src/bacap/cli.py`: minimal `generate` subcommand; produces valid `BacapInstance` JSON.
+- `tests/instances/test_generator.py`: seeded determinism, T1.1 schema validation, congestion monotonicity. 95 tests total in repo.
+
+**Reviewer (fable) required one docs-only round-trip (dcb66fe) before APPROVE.** Blocking finding resolved in that commit:
+
+- `docs/data-sources.md`: fleet-homogeneity limitation documented — calibrated fleet is 140–265 m only; 0% of generated vessels fall below 120 m; feeder crane-bucket (`cranes_max=1–2`) is unreachable; `cranes_max` always in {3,4}. This contrasts with M&B's 60/30/10 Small/Medium/Large class mix. Custom-calibration escape hatch noted.
+- `docs/data-sources.md`: congestion knob caveat added — `rho` is a placement-loop target, not realized utilization; congestion_index is the measurable quantity (sublinear in rho).
+- Truth-vs-AIS-join-selection-bias question (whether fleet homogeneity reflects Vuosaari reality or is an artifact of the ~30% AIS join drop) explicitly left unresolved/indistinguishable.
+
+**Two standing architect escalations raised by this review (NOT resolved — see TICKETS.md):**
+- **(B) EFT/LFT semantic divergence** between generator (`target_departure = eta + ceil(1.5×min_duration)`, `latest_departure = None`) and T1.2 M&B regeneration (`target_departure = eta + min_duration` EFT, `latest_departure = eta + ceil(1.5×min_duration)` LFT). Blocks T2.1.
+- **(A) Wide-calibration profile decision** — whether a "synthetic-wide" profile is needed for crane-assignment diversity in quantum experiments. Blocks Phase 4 experiment design.
+
+**Files added/changed:**
+- `src/bacap/instances/generator.py`: `generate_instance`, `VUOSAARI_DEFAULTS`.
+- `src/bacap/cli.py`: `generate` command.
+- `tests/instances/test_generator.py`: generator tests.
+- `docs/data-sources.md`: homogeneity caveat + congestion knob semantics.
+
+---
+
 ## [0.6.0] — 2026-07-17
 
 ### Added — T1.3 Digitraffic port-call calibration (branch `ticket/T1.3-digitraffic-calibration`, merge 7a6a6b8, feat d56fe07)
