@@ -48,7 +48,9 @@ AC test: mean index over ≥20 seeds is strictly increasing across knob values {
 Digitraffic responses stay local/scratch; only the `ArrivalCalibration` JSON (a dozen numbers + provenance) is committed at `experiments/calibration/vuosaari.json`. Fits use closed-form MLE (no scipy dependency): exponential inter-arrivals (`rate = 1/mean`), lognormal lengths and service times (`mu = mean(ln x)`, `sigma = std(ln x, ddof=1)`).
 
 ### D7 — M&B ingestion: download-first, regenerate-fallback, both behind one parser API
-Hosting is **not fully verified** (see §4.2): the historical host `prodlog.wiwi.uni-halle.de/forschung/container/` (Bierwirth's chair, "Seaside operations planning in container terminals") exists as of 2026-07-16, but I could not fetch its contents from this environment. Spec covers both paths; the module exposes the same `BacapInstance` either way, with `source` distinguishing `"meisel_bierwirth"` vs `"meisel_bierwirth_regenerated"`.
+**AMENDED 2026-07-16 (spike):** M&B originals confirmed unreachable (prodlog downloads dead; TRE 2009 paper not obtainable via user's library). Ruling: primary source is now the **Iris/Pacino/Ropke (2017) "BACAP_Benchmark_n60_n80" dataset** (ResearchGate, published with their TRE 2017 ALNS paper) — actual instance files in the M&B lineage, same problem variant (time-invariant BACAP, 1000 m quay, 1 h periods), user downloads manually. Fallback: transcribe the M&B generation table from Iris et al. (2015, TRE 81:75–97) and regenerate via the existing `regenerate_mb` machinery. Same parser API either way; `source` distinguishes `"iris_2017"` (new Literal value — **T1.1 schema amendment, needs review**) vs `"meisel_bierwirth_regenerated"`. Original D7 text below kept for history.
+
+~~Hosting is **not fully verified** (see §4.2): the historical host `prodlog.wiwi.uni-halle.de/forschung/container/` (Bierwirth's chair, "Seaside operations planning in container terminals") exists as of 2026-07-16, but I could not fetch its contents from this environment. Spec covers both paths; the module exposes the same `BacapInstance` either way, with `source` distinguishing `"meisel_bierwirth"` vs `"meisel_bierwirth_regenerated"`.~~
 
 ### D8 — HTTP: `httpx` (new dep), fail-loud, no fallbacks
 Retry only on transport timeouts and 5xx (3 attempts, exponential backoff 1/2/4 s); any 4xx or exhausted retries raises. No cached-response fallback (CLAUDE.md: fail loudly). `matplotlib` added as a dev/extra dependency for the T1.3 plot AC.
@@ -142,10 +144,13 @@ Serialization: JSON via `model_dump_json` / `model_validate_json`. No YAML, no C
 ### 3.2 `meisel_bierwirth.py` (T1.2)
 
 ```python
-def parse_mb_file(text: str, instance_id: str) -> BacapInstance: ...
+def parse_mb_file(text: str, instance_id: str,
+                  *, source: Literal["iris_2017", "meisel_bierwirth"] = "iris_2017") -> BacapInstance: ...
 def regenerate_mb(n_vessels: Literal[20, 30, 40], seed: int) -> BacapInstance: ...
 def load_mb_set(dir: Path) -> list[BacapInstance]: ...
 ```
+
+**AMENDED 2026-07-16 (spike):** `parse_mb_file` gained the `source` keyword (Iris files are M&B-format lineage; one parser serves both). `"meisel_bierwirth"` stays in the Literal only for the case that original files ever surface. Requires adding `"iris_2017"` to `BacapInstance.source` (T1.1 amendment — see §4.2).
 
 ### 3.3 `calibration.py` (T1.3)
 
@@ -201,10 +206,33 @@ Implementation notes: exactly as §3.1; models frozen; validators raise with the
 Edge cases: single vessel; vessel exactly quay-length; `eta = time_horizon - min_duration` (tight but valid); `latest_departure == time_horizon`.
 Required tests: (a) round-trip `save → load → ==`; (b) one failing test per rule V1–V7 (satisfies the "5+ validation-failure" AC); (c) derived-property arithmetic (`n_positions` for a vessel of 190 m on 25 m grid, 750 m quay ⇒ `ceil(190/25)=8`, `30−8+1=23`); (d) `model_dump(mode="json")` contains all six CLAUDE.md-contract vessel keys (guards D2).
 
-### 4.2 T1.2 — Meisel & Bierwirth import
-**Provenance status (2026-07-16, architect):** the paper is Meisel, F., Bierwirth, C. (2009), *Heuristics for the integration of crane productivity in the berth allocation problem*, Transportation Research Part E 45(1), 196–209, doi:10.1016/j.tre.2008.03.001. Instances were historically distributed via Bierwirth's chair page, `http://prodlog.wiwi.uni-halle.de/forschung/container/` — the page still resolves, but I could not inspect its downloads from this environment. Treat availability as **unverified**.
+### 4.2 T1.2 — Benchmark import (M&B lineage via Iris et al.)
 
-**Path A (preferred): download.** Implementer fetches the instance archive from the page above (or by author request — F. Meisel, CAU Kiel). First real step: inspect the raw format and record it verbatim in `docs/data-sources.md` (column table). Expected content per vessel (per the paper): length, ETA, crane-capacity demand `m_i` (crane-hours), `r_i^min`, `r_i^max`, EST, EFT, LFT, cost rates. Mapping to our schema:
+> **AMENDED 2026-07-16 (spike ruling, architect).** M&B originals are dead (prodlog downloads gone, TRE 2009 paper inaccessible to the user). Old Path A (download originals) is **superseded**; old Path B survives as the fallback with a new table source. New ordering:
+>
+> **Path A′ (primary): parse the Iris et al. (2017) dataset.** The user manually downloads (architect cannot reach ResearchGate):
+> 1. Dataset **"BACAP_Benchmark_n60_n80"** (Iris, Pacino, Ropke — ResearchGate, July 2017, companion to their TRE 2017 ALNS paper) — the full archive, placed at `data/benchmarks/iris2017/` (**gitignored**, add the entry).
+> 2. Full-text PDF of **Iris, Pacino, Ropke, Larsen (2015), "Integrated Berth Allocation and Quay Crane Assignment Problem: Set partitioning models and computational results", TRE 81:75–97, doi:10.1016/j.tre.2015.06.008** — needed regardless of path: it documents the instance format/generation and is the citation anchor.
+> 3. If ResearchGate access is refused: email C. A. Iris (Univ. of Liverpool) requesting the instance files; this is standard practice in the field.
+>
+> Implementer's first step is unchanged in spirit: inspect the raw format, record it verbatim in `docs/data-sources.md` (column table), then implement `parse_mb_file`. The field mapping table below (written for the M&B format) is the expected mapping — Iris et al. use the same problem data (length, ETA, `m_i`, `r_i^min/max`, EFT, LFT on a 1000 m quay, 1 h periods); verify against the actual files and correct the table in data-sources.md, not by inventing values. If the archive also contains the original n=20/30/40 M&B sets, parse those too (same parser).
+>
+> **Schema change (T1.1 amendment, requires review):** add `"iris_2017"` to the `BacapInstance.source` Literal in `schema.py`. No other schema change. Parsed instances get `source="iris_2017"`.
+>
+> **Path B (fallback, unchanged machinery, new table source):** if the dataset download fails or the files are unparseable, transcribe the generation table from the Iris et al. (2015) PDF (§ test instances — their reproduction of M&B's procedure) and run `regenerate_mb(n ∈ {20,30,40}, seed)` with `source="meisel_bierwirth_regenerated"`; data-sources.md must say "generation parameters transcribed from Iris et al. (2015), reproducing Meisel & Bierwirth (2009); not the original files; seeds S". **Never invent table values.**
+>
+> **Path C (last resort):** cited-deviation synthetic table — only after both downloads fail AND an author email goes unanswered; escalate to architect before building it.
+>
+> **Redistribution policy:** the ResearchGate dataset carries no explicit license → do **not** commit the raw files. Tests parse a hand-written 3-vessel fixture in the same format at `tests/fixtures/mb/` (as already spec'd). `load_mb_set(dir)` takes the local gitignored directory.
+>
+> **Solver-reality note (why n60–80 is acceptable):** these instances feed only the MILP/greedy baselines (§5 risk table) — quantum solvers run on synthetic Vuosaari instances either way. CP-SAT on n60–80 runs under a wall-clock limit reporting objective + bound gap, which is exactly how Iris et al. treat these sizes; if the archive yields the n20–40 sets too, those give exactly-solvable baseline points. If it doesn't, Path B can additionally regenerate n20–40 later without a new spec.
+>
+> **Citation block for docs/data-sources.md:**
+> > Benchmark instances: Iris, Ç. A., Pacino, D., Ropke, S. (2017), dataset "BACAP_Benchmark_n60_n80" (ResearchGate), published with *Improved formulations and an Adaptive Large Neighborhood Search heuristic for the integrated berth allocation and quay crane assignment problem*, Transportation Research Part E. Instance lineage: Meisel, F., Bierwirth, C. (2009), TRE 45(1):196–209, doi:10.1016/j.tre.2008.03.001; format and generation documented in Iris, Pacino, Ropke, Larsen (2015), TRE 81:75–97, doi:10.1016/j.tre.2015.06.008. Files obtained from the authors' ResearchGate distribution; not redistributed in this repository.
+
+**~~Provenance status (2026-07-16, architect)~~ (superseded, kept for history):** the paper is Meisel, F., Bierwirth, C. (2009), *Heuristics for the integration of crane productivity in the berth allocation problem*, Transportation Research Part E 45(1), 196–209, doi:10.1016/j.tre.2008.03.001. Instances were historically distributed via Bierwirth's chair page, `http://prodlog.wiwi.uni-halle.de/forschung/container/` — downloads confirmed dead 2026-07-16.
+
+**Path A (superseded — originals unreachable).** ~~Implementer fetches the instance archive from the page above (or by author request — F. Meisel, CAU Kiel).~~ First real step: inspect the raw format and record it verbatim in `docs/data-sources.md` (column table). Expected content per vessel (per the paper): length, ETA, crane-capacity demand `m_i` (crane-hours), `r_i^min`, `r_i^max`, EST, EFT, LFT, cost rates. Mapping to our schema (now applied to the Iris 2017 files):
 
 | M&B field | Ours | Conversion |
 |---|---|---|
@@ -220,7 +248,7 @@ Required tests: (a) round-trip `save → load → ==`; (b) one failing test per 
 
 Redistribution: do **not** commit the raw archive unless its license explicitly allows; commit at most 1–2 files as test fixtures if permitted, otherwise tests parse a hand-written 3-vessel file in the same format.
 
-**Path B (fallback): regeneration.** If downloads are unreachable, implement `regenerate_mb` from the paper's §"Test instances" generation procedure (also reproduced in the open-access preprint *New exact methods for the time-invariant berth allocation and quay crane assignment problem*, optimization-online 2017 — usable if the original is paywalled). Structure: 3 vessel classes (feeder / medium / deep-sea) with class shares and per-class uniform ranges for length, `m_i`, `r_min/max`, and EFT/LFT slack factors; sets of 20/30/40 vessels on a 1000 m quay, 1 h periods. **The exact numeric class table must be transcribed from the paper — do not invent values.** If neither the paper nor a source reproducing the table is accessible, STOP and escalate to architect (spike: obtain the paper). Regenerated instances get `source="meisel_bierwirth_regenerated"` and a `docs/data-sources.md` note "regenerated per M&B (2009), not the original files; seeds S".
+**Path B (fallback): regeneration.** *(AMENDED 2026-07-16: table source is now the Iris et al. 2015 PDF — the optimization-online preprint proved unextractable and unverified; the TRE 2009 paper is inaccessible. Ordering per the amendment block above.)* Implement `regenerate_mb` from the generation procedure as reproduced in Iris et al. (2015). Structure: 3 vessel classes (feeder / medium / deep-sea) with class shares and per-class uniform ranges for length, `m_i`, `r_min/max`, and EFT/LFT slack factors; sets of 20/30/40 vessels on a 1000 m quay, 1 h periods. **The exact numeric class table must be transcribed from the paper — do not invent values.** If that PDF is also unobtainable, STOP and escalate to architect. Regenerated instances get `source="meisel_bierwirth_regenerated"` and a `docs/data-sources.md` note per the amendment block.
 Edge cases: blank lines / trailing whitespace in raw files; vessels whose LFT exceeds the stated horizon (clamp is forbidden — raise).
 Required tests: parser on a fixture file with hand-checked expected `BacapInstance`; malformed-file raises; (Path B) regeneration determinism per seed; every parsed/regenerated instance passes T1.1 validation.
 
@@ -254,7 +282,9 @@ Required tests: same seed ⇒ identical `model_dump_json`; different seed ⇒ di
 
 | Risk | Impact | Fallback |
 |---|---|---|
-| M&B originals unreachable or license forbids redistribution | T1.2 provenance weaker | Path B regeneration (spec'd); if the paper's parameter table is also unobtainable, escalate — smallest spike: obtain paper via library access before any T1.2 code |
+| ~~M&B originals unreachable~~ **Realized 2026-07-16** — superseded by Iris 2017 dataset (Path A′, §4.2 amendment) | — | — |
+| Iris 2017 ResearchGate download fails / files unparseable | T1.2 blocked | Path B: transcribe generation table from Iris et al. (2015) PDF, regenerate n20–40; then author email; Path C (cited-deviation synthetic) only after architect escalation |
+| CP-SAT cannot close n60–80 instances to optimality | Baseline reports gaps, not optima | Acceptable — report objective + bound gap under a wall-clock limit (Iris et al.'s own treatment); regenerate n20–40 via Path B if exact baseline points are needed |
 | M&B full grid (1000 m/10 m × ~week/1 h) is far beyond annealer capacity | Phase 2 can't run benchmarks on quantum solvers | Expected and fine: benchmarks serve the MILP/greedy baselines and small extracted subsets; quantum instances come from the generator with coarse `berth_grid_m`. Phase 2 spec must include the variable-count table before committing grid sizes |
 | Digitraffic param names / Vuosaari area code differ from expectations | T1.3 client rework | Verification-first step in §4.3; client takes params as data, not hardcoded strings |
 | Vuosaari sample too small in 6-month window for stable lognormal fit | Noisy calibration | Widen window to 12 months; report `n_port_calls` in the calibration file so the thesis can state sample size honestly |

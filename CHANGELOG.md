@@ -8,9 +8,71 @@ Commits follow Conventional Commits.
 
 ## [Unreleased]
 
-### Deferred / follow-ups (open, carried forward to Phase 1)
+### Deferred / follow-ups (open, no ticket)
+- Obtain Iris et al. (2017) "BACAP_Benchmark_n60_n80" dataset files (email C. Iris) → would unlock `parse_mb_file` per amended spec Path A' and allow replacement of regenerated instances with published originals.
+
+---
+
+## [0.5.1] — 2026-07-16
+
+### Fixed — T1.2 amendment: EFT/LFT formula correction (commits 9a67b8b feat, 7d452c7 merge)
+
+Primary source M&B (2009) was obtained after T1.2 merged, revealing a formula mis-wiring introduced by following Correcher's (2019) conflated phrasing of the due-date rule.
+
+**What was wrong:** `target_departure` was set to `eta + ceil(1.5 × min_duration)` and `latest_departure` was `None`. Correcher describes the due date as "desired departure = a_i + 1.5 × min handling time", which conflates M&B's LFT (hard deadline) with the soft due date.
+
+**What M&B (2009) actually says:** §7.2 verbatim — "The latest finishing time LFT of a vessel is derived by adding 1.5 times a vessel's minimum handling time to ETA_i." The EFT (earliest finishing time / soft due date) is not stated in §7.2 prose; it is inferred arithmetically from the worked example Table 1 (p.6): vessel 3 has m=5, r_max=3, so min_duration=ceil(5/3)=2, ETA=4, EFT=6=4+2, i.e. `eta + min_duration`.
+
+**Changes:**
+- `src/bacap/instances/meisel_bierwirth.py`: `target_departure = eta + min_duration` (EFT); `latest_departure = eta + ceil(1.5 × min_duration)` (LFT, verbatim rule).
+- `docs/data-sources.md`: primary source updated to M&B (2009) local PDF; Correcher demoted to corroborating with an explanatory note about the conflation; "latest_departure unavailable" deviation removed; new deviation "EFT rule not stated in prose" added; amendment note appended to deviation list.
+- **Provenance impact:** all previously regenerated instances have incorrect `target_departure` / `latest_departure` values. Re-run `regenerate_mb_set(seed)` to obtain corrected instances.
+
+**Reviewer verification (opus):** independently re-extracted §7.2 text from the PDF, confirmed verbatim LFT quote, checked EFT inference against two table rows (vessels 1 and 3), caught a worst-case-LFT bound error in the ticket brief (Medium class: 188, not 185). Verdict: APPROVE, no blocking findings. 42 tests green; `uv run ruff check .` clean; `uv run mypy src` (strict) clean.
+
+---
+
+## [0.5.0] — 2026-07-16
+
+### Added — T1.2 Meisel–Bierwirth benchmark import (branch `ticket/T1.2-mb-regeneration`, merge 72263cf, feat 4f5d7a8)
+Second Phase 1 ticket. Implements M&B benchmark instances via **Path B regeneration** (amended spec §4.2); neither the original M&B (2009) dataset files nor the Iris et al. (2017) dataset were obtainable.
+
+- `src/bacap/instances/meisel_bierwirth.py`: `regenerate_mb(size, seed)` and `regenerate_mb_set(seed)` producing `BacapInstance` objects marked `source="meisel_bierwirth_regenerated"`. Generation parameters transcribed from three independent open sources: Correcher & Alvarez-Valdes EJOR-2019 preprint §7.1 pp.22–23 ("GenMB-10m", **primary**), corroborated by Bogerd (2019) MSc thesis Appendix Table 1 and Iris et al. (2015) §5.1. `parse_mb_file` stub included but deferred (raises `NotImplementedError` with acquisition guidance).
+- `tests/instances/test_mb.py`: 13 tests covering regeneration determinism (byte-identical across processes), set composition, instance validity per T1.1 schema, and size variants.
+- `docs/data-sources.md`: rewritten with full provenance, citations, and documented deviations for all three corroborating sources.
+- `.gitignore`: added `docs/data/` and `Bogerd.pdf` — copyrighted source PDFs kept local, never committed.
+
+### Verified (reviewer, fable — transcription-fidelity audit)
+- Reviewer independently re-extracted every constant from source PDFs and verified symbol-for-symbol against implementation.
+- 41 tests passed (28 schema + 13 MB); determinism confirmed byte-identical across processes.
+- `uv run ruff check .` — clean. `uv run mypy src` (strict) — clean.
+- Verdict: APPROVE, zero blocking findings.
+
+---
+
+## [0.4.0] — 2026-07-16
 - `tests/test_config.py` defaults test does not clear ambient env vars — add `monkeypatch.delenv` when it bites in CI.
 - `.pre-commit-config.yaml` pins ruff/mypy versions while dev deps float — sync versions when they drift.
+- `tests/instances/test_schema.py`: test named `test_congestion_index_zero_span_raises` actually asserts the non-raising path — rename to `test_congestion_index_single_vessel_span_positive` when touching that file.
+- `src/bacap/instances/schema.py`: `congestion_index` docstring describes the T_span==0 guard as "single instantaneous vessel", which is unreachable under V1/V3 validation — reword to mark the guard as defensive/unreachable.
+- One V5 test fixture in `tests/instances/test_schema.py` also violates V6; it passes only because V5 is checked first (validator-order-dependent, harmless) — add a comment if that fixture is touched again.
+
+---
+
+## [0.4.0] — 2026-07-16
+
+### Added — T1.1 Instance schema & loader (branch `ticket/T1.1-instance-schema`, merge ed113ed, feat c063491)
+First Phase 1 ticket. Implements the artifact-contract instance schema per `docs/specs/phase-1-spec.md` §3.1.
+
+- `src/bacap/instances/schema.py`: `Vessel` and `BacapInstance` Pydantic v2 models; frozen, `extra=forbid`. All 7 instance-level validators (V1–V7) and 3 vessel-level validators enforced. Derived properties: `n_segments`, `length_segments`, `n_positions`, `min_duration`, `hard_departure`. `load_instance` / `save_instance` for JSON (de)serialization. `congestion_index` per spec D5.
+- `src/bacap/instances/__init__.py`: re-exports `Vessel`, `BacapInstance`, `load_instance`, `save_instance`.
+- `tests/instances/test_schema.py`: 28 tests (round-trip serialization, all V1–V7 + vessel-level validators, derived properties, `congestion_index`, adversarial probes).
+
+### Verified (reviewer, fable — symbol-for-symbol spec conformance)
+- 28 tests + 16 adversarial probes — all passed.
+- `uv run ruff check .` — clean.
+- `uv run mypy src` (strict) — clean.
+- QA checklist §3 (schema contract) — PASS. Verdict: APPROVE.
 
 ---
 
