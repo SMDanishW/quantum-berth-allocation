@@ -8,9 +8,29 @@ Commits follow Conventional Commits.
 
 ## [Unreleased]
 
-### Deferred / follow-ups (open, carried forward to Phase 1)
+### Deferred / follow-ups (open, no ticket)
 - `tests/test_config.py` defaults test does not clear ambient env vars — add `monkeypatch.delenv` when it bites in CI.
 - `.pre-commit-config.yaml` pins ruff/mypy versions while dev deps float — sync versions when they drift.
+- `tests/instances/test_schema.py`: test named `test_congestion_index_zero_span_raises` actually asserts the non-raising path — rename to `test_congestion_index_single_vessel_span_positive` when touching that file.
+- `src/bacap/instances/schema.py`: `congestion_index` docstring describes the T_span==0 guard as "single instantaneous vessel", which is unreachable under V1/V3 validation — reword to mark the guard as defensive/unreachable.
+- One V5 test fixture in `tests/instances/test_schema.py` also violates V6; it passes only because V5 is checked first (validator-order-dependent, harmless) — add a comment if that fixture is touched again.
+
+---
+
+## [0.4.0] — 2026-07-16
+
+### Added — T1.1 Instance schema & loader (branch `ticket/T1.1-instance-schema`, merge ed113ed, feat c063491)
+First Phase 1 ticket. Implements the artifact-contract instance schema per `docs/specs/phase-1-spec.md` §3.1.
+
+- `src/bacap/instances/schema.py`: `Vessel` and `BacapInstance` Pydantic v2 models; frozen, `extra=forbid`. All 7 instance-level validators (V1–V7) and 3 vessel-level validators enforced. Derived properties: `n_segments`, `length_segments`, `n_positions`, `min_duration`, `hard_departure`. `load_instance` / `save_instance` for JSON (de)serialization. `congestion_index` per spec D5.
+- `src/bacap/instances/__init__.py`: re-exports `Vessel`, `BacapInstance`, `load_instance`, `save_instance`.
+- `tests/instances/test_schema.py`: 28 tests (round-trip serialization, all V1–V7 + vessel-level validators, derived properties, `congestion_index`, adversarial probes).
+
+### Verified (reviewer, fable — symbol-for-symbol spec conformance)
+- 28 tests + 16 adversarial probes — all passed.
+- `uv run ruff check .` — clean.
+- `uv run mypy src` (strict) — clean.
+- QA checklist §3 (schema contract) — PASS. Verdict: APPROVE.
 
 ---
 

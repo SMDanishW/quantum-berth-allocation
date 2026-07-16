@@ -20,7 +20,7 @@ Status values: TODO / IN-PROGRESS / IN-REVIEW / DONE. `[P]` = parallel-safe with
 ## Phase 1 — Instance model, generator & real-data calibration
 **DoD:** `bacap.cli generate` produces valid instances; benchmark instances load; arrival-pattern stats documented.
 
-- **T1.1 — Instance schema & loader** · TODO
+- **T1.1 — Instance schema & loader** · DONE · merged 2026-07-16 · branch ticket/T1.1-instance-schema (merge commit ed113ed, feature commit c063491)
   Pydantic models for instance (quay, horizon, time step, cranes, vessels); JSON (de)serialization; validation rules (vessel fits quay, ETA in horizon).
   *AC:* round-trip serialization test; 5+ validation-failure tests.
 - **T1.2 — Meisel–Bierwirth benchmark import** · TODO
