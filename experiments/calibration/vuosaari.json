@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "source": "digitraffic port-call v1",
+  "locode": "FIHEL",
+  "port_area": "VUOS",
+  "window_from": "2026-01-18T08:12:00Z",
+  "window_to": "2026-07-16T16:10:00Z",
+  "n_port_calls": 982,
+  "interarrival": {
+    "dist": "exponential",
+    "rate_per_hour": 0.22699989931768372
+  },
+  "vessel_length_m": {
+    "dist": "lognormal",
+    "mu": 5.245774855615497,
+    "sigma": 0.10263661697336583,
+    "clip_min": 60,
+    "clip_max": 300
+  },
+  "service_time_steps": {
+    "dist": "lognormal",
+    "mu": 2.5712707124574434,
+    "sigma": 0.8307310058157161
+  },
+  "created_at": "2026-07-16T21:14:59Z",
+  "attribution": "Arrival-pattern calibration derived from Fintraffic / Digitraffic port-call data (https://www.digitraffic.fi/en/marine-traffic/), licensed CC BY 4.0. Raw data not redistributed; only fitted distribution parameters are stored."
+}

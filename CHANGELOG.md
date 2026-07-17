@@ -10,6 +10,75 @@ Commits follow Conventional Commits.
 
 ### Deferred / follow-ups (open, no ticket)
 - Obtain Iris et al. (2017) "BACAP_Benchmark_n60_n80" dataset files (email C. Iris) → would unlock `parse_mb_file` per amended spec Path A' and allow replacement of regenerated instances with published originals.
+- `docs/data-sources.md`: replace "clipped" with "excluded" (or "filtered") when describing the vessel-length join — the implementation does not clip values, it drops rows below the threshold.
+- `scripts/calibrate_vuosaari.py`: surface drop-counts (pre/post join, pre/post dedup) in script stdout so callers can see how many records were discarded without reading source.
+- `src/bacap/instances/calibration.py` inter-arrival fit: zero-gap ties (two port-calls with identical ATA) are silently dropped; document or handle explicitly.
+- `src/bacap/instances/calibration.py` dedup guard: `portCallId=None` records bypass the deduplification set and could produce duplicates; add a guard or log a warning.
+
+---
+
+## [0.7.0] — 2026-07-17
+
+### Added — T1.4 Instance generator (branch `ticket/T1.4-instance-generator`, merge 6370b9c, feats c7259bc + dcb66fe)
+
+Fourth and final Phase 1 ticket. **Phase 1 DoD met.**
+
+- `src/bacap/instances/generator.py`: `generate_instance(n, congestion, seed)` sampling vessel count, inter-arrival times, lengths, and service times from T1.3 Vuosaari calibration constants (`VUOSAARI_DEFAULTS`). Congestion knob `rho` is a generator target, not realized utilization; `congestion_index` is the measured output (observed ~0.30/0.43/0.53 for rho=0.3/0.5/0.7, sublinear relationship).
+- `src/bacap/cli.py`: minimal `generate` subcommand; produces valid `BacapInstance` JSON.
+- `tests/instances/test_generator.py`: seeded determinism, T1.1 schema validation, congestion monotonicity. 95 tests total in repo.
+
+**Reviewer (fable) required one docs-only round-trip (dcb66fe) before APPROVE.** Blocking finding resolved in that commit:
+
+- `docs/data-sources.md`: fleet-homogeneity limitation documented — calibrated fleet is 140–265 m only; 0% of generated vessels fall below 120 m; feeder crane-bucket (`cranes_max=1–2`) is unreachable; `cranes_max` always in {3,4}. This contrasts with M&B's 60/30/10 Small/Medium/Large class mix. Custom-calibration escape hatch noted.
+- `docs/data-sources.md`: congestion knob caveat added — `rho` is a placement-loop target, not realized utilization; congestion_index is the measurable quantity (sublinear in rho).
+- Truth-vs-AIS-join-selection-bias question (whether fleet homogeneity reflects Vuosaari reality or is an artifact of the ~30% AIS join drop) explicitly left unresolved/indistinguishable.
+
+**Two standing architect escalations raised by this review (NOT resolved — see TICKETS.md):**
+- **(B) EFT/LFT semantic divergence** between generator (`target_departure = eta + ceil(1.5×min_duration)`, `latest_departure = None`) and T1.2 M&B regeneration (`target_departure = eta + min_duration` EFT, `latest_departure = eta + ceil(1.5×min_duration)` LFT). Blocks T2.1.
+- **(A) Wide-calibration profile decision** — whether a "synthetic-wide" profile is needed for crane-assignment diversity in quantum experiments. Blocks Phase 4 experiment design.
+
+**Files added/changed:**
+- `src/bacap/instances/generator.py`: `generate_instance`, `VUOSAARI_DEFAULTS`.
+- `src/bacap/cli.py`: `generate` command.
+- `tests/instances/test_generator.py`: generator tests.
+- `docs/data-sources.md`: homogeneity caveat + congestion knob semantics.
+
+---
+
+## [0.6.0] — 2026-07-17
+
+### Added — T1.3 Digitraffic port-call calibration (branch `ticket/T1.3-digitraffic-calibration`, merge 7a6a6b8, feat d56fe07)
+
+Third Phase 1 ticket. Produces fitted arrival-pattern and vessel-dimension distributions for the Vuosaari terminal, calibrated against 6 months of live Digitraffic data (2026-01-18 to 2026-07-16, n=982 port calls).
+
+**API reality (step-0 verification against live Digitraffic swagger):**
+- Endpoint: `GET /api/port-call/v1/port-calls`; params: `locode`, `ataFrom`, `ataTo`.
+- ATA/ATD live in `portAreaDetails[]` (not top-level); `portAreaCode=VUOS` confirmed for Vuosaari.
+- AIS vessel length = `referencePointA + referencePointB`.
+- **No pagination cursor** — the spec assumed one. Client instead issues 30-day date-windowed chunks and deduplicates by `portCallId`. This is a spec deviation but matches the actual API contract; the chunking strategy produces the same coverage.
+
+**Fitted parameters (real output, `experiments/calibration/vuosaari.json`):**
+- Inter-arrival: exponential, rate=0.227/h.
+- Vessel length: lognormal, mu=5.246, sigma=0.103 (median ≈190 m).
+- Service time: lognormal, mu=2.571, sigma=0.831 (median ≈13 h).
+
+**Spec deviations (both approved by reviewer, fable):**
+1. Join-drop-raise threshold relaxed from 20% to 50%: ~30% of VUOS MMSIs are structurally absent from the live AIS snapshot across all tested date windows; raising to 20% would always abort. Fitted length distribution describes only the AIS-tracked ~70% subpopulation; caveat recorded in `docs/data-sources.md`.
+2. Retry semantics: implemented as initial attempt + 3 retries (4 total), consuming backoffs of 1/2/4 s. Spec prose was ambiguous on the count; this reading is standard and was accepted.
+
+**Reviewer verification (fable — independent MLE recomputation):**
+Reviewer ran a separate script (no bacap imports) recomputing all three MLE fits from raw fixture data; got exact matches on rate, mu, sigma for all distributions. Verified no test circularity (fixture generation script and test fixtures are independent). 58 tests total in repo (16 new for T1.3); ruff clean; mypy (strict) clean. Verdict: APPROVE, zero blocking findings, 4 non-blocking nits (logged in Unreleased deferred above).
+
+**Files added/changed:**
+- `src/bacap/instances/calibration.py`: `ArrivalCalibration` Pydantic model; `fetch_port_calls`, `fetch_vessel_dimensions`, `fit_calibration`, `load_calibration`.
+- `scripts/calibrate_vuosaari.py`: end-to-end script that fetches, fits, and writes `experiments/calibration/vuosaari.json`.
+- `scripts/record_digitraffic_fixtures.py`: records hand-built test fixtures (≤50 records each) to `tests/fixtures/digitraffic/`.
+- `tests/instances/test_calibration.py`: 16 new tests (client against fixtures, fit correctness, serialization round-trip).
+- `tests/fixtures/digitraffic/*.json`: hand-built fixtures; no real personal data.
+- `experiments/calibration/vuosaari.json`: real fitted output (committed).
+- `docs/figures/vuosaari-calibration.png`: distribution plots.
+- `docs/data-sources.md`: CC BY 4.0 attribution for Digitraffic (Fintraffic); AIS join-drop caveat; API reality notes.
+- `pyproject.toml`: `httpx` added as runtime dep; `matplotlib` added as dev dep.
 
 ---
 

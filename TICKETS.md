@@ -27,12 +27,29 @@ Status values: TODO / IN-PROGRESS / IN-REVIEW / DONE. `[P]` = parallel-safe with
   Path B regeneration per amended spec; originals unreachable. Generation parameters transcribed from Correcher & Alvarez-Valdes EJOR-2019 (primary), corroborated by Bogerd (2019) MSc thesis and Iris et al. (2015); reviewer transcription-fidelity audit: APPROVE. Iris-2017 file parser deferred pending dataset acquisition.
   *AC:* ≥1 instance set parsed; parser tests; provenance documented.
   AMENDED 2026-07-16: EFT/LFT formula corrected against primary source M&B (2009) (commits 9a67b8b feat, 7d452c7 merge). `target_departure` was wired to `eta + ceil(1.5×min_duration)` (following Correcher's conflated phrasing); corrected to `eta + min_duration` (EFT, inferred from Table 1 worked example). `latest_departure` was `None`; now `eta + ceil(1.5×min_duration)` per M&B §7.2 verbatim LFT rule. Reviewer (opus) re-extracted PDF text, verified arithmetic against two table rows, caught worst-case-LFT bound error in ticket brief (188 not 185 for Medium class). 42 tests green; ruff/mypy clean. Primary source demoted Correcher to corroborating; "latest_departure unavailable" deviation removed; EFT-inference deviation added.
-- **T1.3 [P] — Digitraffic port-call calibration** · TODO
+- **T1.3 [P] — Digitraffic port-call calibration** · DONE · merged 2026-07-17 · branch ticket/T1.3-digitraffic-calibration (merge commit 7a6a6b8, feature commit d56fe07)
   Client for `meri.digitraffic.fi/api/port-call/v1/port-calls` (timeout, retry, rate-limit friendly); pull recent Vuosaari calls; extract arrival-interval + vessel-size distributions; store fitted parameters (no raw-data commit).
   *AC:* fitted distributions serialized + plotted; API client tested against recorded fixtures; CC BY 4.0 attribution added.
-- **T1.4 — Instance generator** · TODO
-  Generator sampling from T1.3 distributions, configurable (n vessels, congestion level, seed).
+  DEVIATION (approved): join-drop-raise threshold relaxed from 20% to 50% — ~30% of VUOS MMSIs are structurally absent from the live AIS snapshot regardless of window width. Fitted length distribution describes only the AIS-tracked ~70% subpopulation; caveat recorded in docs/data-sources.md.
+- **T1.4 — Instance generator** · DONE · merged 2026-07-17 · branch ticket/T1.4-instance-generator (merge commit 6370b9c, feat commits c7259bc + dcb66fe)
+  `generate_instance(n, congestion, seed)` in `src/bacap/instances/generator.py` sampling from T1.3 Vuosaari calibration constants; `bacap.cli generate` command in `src/bacap/cli.py`; 95 tests total in repo. Reviewer (fable) required one docs-only round-trip (dcb66fe) before APPROVE: `docs/data-sources.md` now records (a) fleet-homogeneity limitation — calibrated fleet is 140–265 m only (0% under 120 m, feeder crane-bucket unreachable, `cranes_max` always in {3,4} vs M&B's 60/30/10 vessel-class mix); and (b) congestion knob `rho` is a generator TARGET, not realized utilization — `congestion_index` is the measured quantity (observed ~0.30/0.43/0.53 for rho=0.3/0.5/0.7, sublinear). Truth-vs-AIS-join-selection-bias question explicitly left unresolved/indistinguishable; custom-calibration escape hatch noted.
   *AC:* seeded determinism test; generated instances pass T1.1 validation; congestion knob measurably shifts overlap pressure.
+
+**Phase 1 DoD met:** `bacap.cli generate` produces valid instances; benchmark instances load (regenerated per M&B); arrival-pattern stats documented (n=982 Vuosaari calibration).
+
+---
+
+## ⚠ OPEN ARCHITECT DECISIONS BEFORE PHASE 2
+
+These are real open decisions that must be resolved by the architect before work proceeds on the gated tickets. They are NOT closed items. Both arose from the T1.4 and T1.2 amendment reviews.
+
+**(B) EFT/LFT due-date semantic alignment — blocks T2.1**
+The generator (per approved but now-stale Phase 1 spec §4.4) uses `target_departure = eta + ceil(1.5×min_duration)` and `latest_departure = None`. The T1.2 primary-source amendment established `target_departure = eta + min_duration` (EFT) and `latest_departure = eta + ceil(1.5×min_duration)` (LFT) for regenerated M&B instances. Synthetic and benchmark instances now carry DIFFERENT due-date semantics. Must be resolved (architect ruling: align generator to EFT/LFT, or formally accept and document the divergence) **BEFORE T2.1** (Phase 2 QUBO formulation spec), since T2.1's objective/penalty formulation depends on due-date semantics being well-defined and consistent across instance sources.
+
+**(A) Wide-calibration profile decision — blocks Phase 4 experiment design**
+The Vuosaari-calibrated generator produces homogeneous fleets (140–265 m, cranes_max ∈ {3,4}). This may deprive quantum experiments of crane-assignment diversity. Architect must decide: (a) accept homogeneous instances for all experiments, (b) add a documented "synthetic-wide" calibration profile that restores M&B-style vessel-class mix (60/30/10), or (c) other. Must be resolved **BEFORE Phase 4** experiment design (T4.1+). Does not block Phase 2 or Phase 3.
+
+---
 
 ## Phase 2 — QUBO formulation
 **DoD:** written formulation in docs/specs matches code symbol-for-symbol; feasibility checker is the single truth for constraints.
